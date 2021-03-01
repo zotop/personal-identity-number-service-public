@@ -1,0 +1,4 @@
+CREATE TABLE data (
+  in VARCHAR(250) UNIQUE,
+  res VARCHAR(10)
+);
