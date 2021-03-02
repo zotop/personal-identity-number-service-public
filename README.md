@@ -22,3 +22,5 @@ Prerequisites: Java11, Maven
 
 1. Start by building the app using command ```mvn clean install```
 2. Run the app by using command ```java -jar target/personal-identity-number-service-0.0.1-SNAPSHOT.jar```
+
+
