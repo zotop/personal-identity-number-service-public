@@ -12,9 +12,10 @@ Use the following algorithm to validate if the input is a personal identity numb
 https://en.wikipedia.org/wiki/Personal_identity_number_(Sweden)#Checksum  
 2. Every validation attempt should be persisted in the h2 database.  
 These can be used to improve performance on the endpoint. 
-3. When done post a pull request to the repository.  
+3. When done send us your fork on email.  
 
-** Feel free to add/change whatever you think is necessary in order to make this service as good as possible.
+** Feel free to add/change whatever you think is necessary in order to make this service as 
+good as possible. Nothing in today's solution is a must have. 
 
 ## Run the app
 
