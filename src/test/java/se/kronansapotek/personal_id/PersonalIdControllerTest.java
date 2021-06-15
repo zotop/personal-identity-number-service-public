@@ -10,14 +10,14 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.result.MockMvcResultHandlers;
 
 import java.util.stream.Stream;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @SpringBootTest
 @AutoConfigureMockMvc
@@ -49,16 +49,25 @@ public class PersonalIdControllerTest {
                 .andExpect(jsonPath("$.valid", equalTo(false)));
     }
 
+    @ParameterizedTest
+    @MethodSource("wronglyFormattedPersonalIds")
+    void should_return_bad_request_for_wrongly_formatted_personal_ids(String id) throws Exception {
+        mockMvc.perform(get("/api/personal-ids/{id}/valid", id))
+                .andDo(MockMvcResultHandlers.print())
+                .andExpect(status().isBadRequest())
+                .andExpect(content().string("valid.id: must match \"(\\d{6}|\\d{8})(\\+|-?)(\\d{4})\""));
+    }
+
     @Test
     void should_persist_validation_attempt() throws Exception {
-        String invalidId = "YYMMDD-XXXX";
-        mockMvc.perform(get("/api/personal-ids/{id}/valid", invalidId))
+        String id = "890115-5344";
+        mockMvc.perform(get("/api/personal-ids/{id}/valid", id))
                 .andExpect(status().isOk());
 
-        personalIdRepository.findById(invalidId).ifPresentOrElse(personalId -> {
-            assertThat(personalId.getId(), equalTo(invalidId));
-            assertThat(personalId.getValid(), equalTo(false));
-        }, () -> Assertions.fail("Did not store validation attempt for personal id: " + invalidId));
+        personalIdRepository.findById(id).ifPresentOrElse(personalId -> {
+            assertThat(personalId.getId(), equalTo(id));
+            assertThat(personalId.getValid(), equalTo(true));
+        }, () -> Assertions.fail("Did not store validation attempt for personal id: " + id));
     }
 
     private static Stream<Arguments> validPersonalIds() {
@@ -76,10 +85,19 @@ public class PersonalIdControllerTest {
         return Stream.of(
                 Arguments.of("811228-9873"),
                 Arguments.of("8112289873"),
-                Arguments.of("1811228-9874"),
-                Arguments.of("811228--9874"),
                 Arguments.of("140613+8807"),
                 Arguments.of("19140613+8807")
+        );
+    }
+
+    private static Stream<Arguments> wronglyFormattedPersonalIds() {
+        return Stream.of(
+                Arguments.of(" "),
+                Arguments.of("112289874"),
+                Arguments.of("198112280-9874"),
+                Arguments.of("19811228--9874"),
+                Arguments.of("140613++8808"),
+                Arguments.of("YYMMDDXXXX")
         );
     }
 }
